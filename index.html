@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Appunti</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Appunti">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#edf1ef">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: colonna unica, header con titolo grande, barra schede che resta in alto, scene animate come "palcoscenici" */
+:root{
+  --bg:#edf1ef; --card:#ffffff; --fg:#13211d; --mut:#586862; --line:#d5dfdb;
+  --acc:#ff5a36; --accfg:#ffffff; --teal:#17695a; --tealbg:#dcefe9;
+  --ok:#17803f; --okbg:#ddf2e4; --ko:#b8362b; --kobg:#fbe3df; --shadow:0 1px 0 rgba(19,33,29,.06),0 8px 24px -12px rgba(19,33,29,.18);
+  --head:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1815; --card:#18231f; --fg:#e8f0ec; --mut:#9db0a8; --line:#2a3a34;
+  --acc:#ff7a5a; --accfg:#1a0b06; --teal:#5fd1b5; --tealbg:#173a31;
+  --ok:#6fd49a; --okbg:#17321f; --ko:#f28b80; --kobg:#3b1f1c; --shadow:0 8px 24px -12px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1815; --card:#18231f; --fg:#e8f0ec; --mut:#9db0a8; --line:#2a3a34;
+  --acc:#ff7a5a; --accfg:#1a0b06; --teal:#5fd1b5; --tealbg:#173a31;
+  --ok:#6fd49a; --okbg:#17321f; --ko:#f28b80; --kobg:#3b1f1c; --shadow:0 8px 24px -12px rgba(0,0,0,.6); color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);padding:0 16px 80px}
+main{max-width:780px;margin:0 auto}
+header{padding:28px 0 18px}
+header h1{font:800 clamp(2rem,7vw,3rem)/1 var(--head);letter-spacing:-.02em;margin:0 0 8px}
+header h1 span{color:var(--acc)}
+header p{margin:0;color:var(--mut);max-width:48ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+label,.lbl{display:block;font-weight:700;margin-bottom:6px}
+textarea,input[type=password],input[type=text]{width:100%;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px}
+textarea{min-height:160px;resize:vertical}
+button{font:600 1rem var(--body);cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:10px 15px;transition:transform .12s ease,background .2s}
+button:hover:not(:disabled){transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(0)}
+button.p{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
+button:disabled{opacity:.5;cursor:default}
+:is(button,textarea,input,summary):focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mut{color:var(--mut);font-size:.92rem}
+.err{color:var(--ko);font-weight:700;white-space:pre-wrap}
+details summary{cursor:pointer;font-weight:700}
+.drop{display:block;border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:10px}
+.drop:hover,.drop.over{border-color:var(--acc);background:var(--bg)}
+.drop b{display:block;font-family:var(--head)}
+.drop input{display:none}
+.steps3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px;padding:0;list-style:none;counter-reset:s}
+.steps3 li{counter-increment:s;color:var(--mut);font-size:.92rem}
+.steps3 li::before{content:counter(s);display:inline-grid;place-items:center;width:1.6rem;height:1.6rem;margin-right:8px;border-radius:50%;background:var(--tealbg);color:var(--teal);font-weight:800}
+
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin:0 0 12px;background:var(--bg);scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{white-space:nowrap}
+.tabs button[aria-selected=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.pane{animation:rise .35s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h2{font:800 1.6rem/1.15 var(--head);letter-spacing:-.01em;margin:0 0 12px}
+h3{font:700 1.1rem var(--head);margin:0 0 6px}
+.sec{margin-bottom:18px}
+ul.pts{margin:0;padding-left:20px}ul.pts li{margin-bottom:4px}
+.term{font-weight:800;color:var(--teal)}
+
+/* scene animate */
+.scene{padding:0;overflow:hidden}
+.scene-h{padding:16px 18px 6px}
+.scene-h p{margin:0;color:var(--mut);font-size:.95rem}
+.badge{display:inline-block;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);background:var(--tealbg);border-radius:99px;padding:2px 10px;margin-bottom:6px}
+.stage{padding:14px 18px 6px;min-height:120px}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 18px 16px}
+.ctrl .dots{margin-left:auto;display:flex;gap:5px}
+.ctrl .dots i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .3s,transform .3s}
+.ctrl .dots i.on{background:var(--acc);transform:scale(1.25)}
+.st{opacity:0;transform:translateY(14px) scale(.98);transition:opacity .5s ease,transform .5s ease;pointer-events:none;height:0;overflow:hidden;margin:0}
+.st.on{opacity:1;transform:none;pointer-events:auto;height:auto;overflow:visible;margin-bottom:0}
+.flow .st{position:relative}
+.node{display:flex;gap:12px;align-items:flex-start;background:var(--tealbg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.node .n{flex:none;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--teal);color:var(--card);display:grid;place-items:center;font-weight:800}
+.node b{display:block}
+.node span{color:var(--mut);font-size:.93rem}
+.arrow{height:22px;margin-left:calc(14px + .95rem - 1px);width:2px;background:var(--acc);position:relative;transform-origin:top;transform:scaleY(0);transition:transform .45s ease .15s}
+.st.on .arrow{transform:scaleY(1)}
+.arrow::after{content:"";position:absolute;bottom:-1px;left:-5px;border:6px solid transparent;border-top-color:var(--acc);border-bottom:0}
+.flow .st:first-child .arrow{display:none}
+.cmp-head,.cmp-row{display:grid;grid-template-columns:minmax(98px,.75fr) 1fr 1fr;gap:8px}
+.cmp-head{font-family:var(--head);font-weight:800;padding-bottom:8px}
+.cmp-head div:nth-child(2){color:var(--teal)}.cmp-head div:nth-child(3){color:var(--acc)}
+.cmp-row{padding:8px 0;border-top:1px solid var(--line);font-size:.95rem}
+.cmp-row .v{font-weight:700;color:var(--mut);font-size:.88rem}
+.cmp-row div{min-width:0;overflow-wrap:break-word;hyphens:auto}
+.bub{max-width:92%;background:var(--bg);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:10px 14px;font-style:italic;margin-top:10px}
+.note{max-width:92%;margin:6px 0 0 18px;padding:6px 12px;border-left:3px solid var(--acc);color:var(--fg);font-size:.93rem}
+
+/* flashcard */
+.fc-wrap{perspective:1000px}
+.fc{position:relative;min-height:230px;cursor:pointer;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,.7,.2,1)}
+.fc.flip{transform:rotateY(180deg)}
+.fc>div{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;padding:22px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;overflow:auto;border:1px solid var(--line)}
+.fc .f{background:var(--tealbg)}
+.fc .f b{font:800 1.7rem/1.15 var(--head);color:var(--teal)}
+.fc .b{background:var(--card);transform:rotateY(180deg)}
+.fc .b p{margin:0 0 8px}
+
+/* quiz */
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .5s ease}
+.q p.t{font-weight:700;font-size:1.08rem;margin:0 0 10px}
+.opt{display:block;width:100%;text-align:left;margin-bottom:8px}
+.opt.ok{background:var(--okbg);border-color:var(--ok);animation:pop .35s ease}
+.opt.ko{background:var(--kobg);border-color:var(--ko);animation:shake .35s ease}
+@keyframes pop{50%{transform:scale(1.02)}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.exp{margin-top:8px;color:var(--mut);font-size:.95rem}
+.score{font:800 2.4rem var(--head);color:var(--acc)}
+.conf{position:fixed;top:-10px;width:10px;height:14px;z-index:20;animation:fall 2.2s ease-in forwards;pointer-events:none}
+@keyframes fall{to{transform:translate(var(--dx),105vh) rotate(720deg);opacity:.9}}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Ap<span>punti</span></h1>
+<p>Metti una registrazione o un testo. Ricevi spiegazione, scene animate, appunti, flashcard e quiz.</p>
+</header>
+
+<details class="card" id="setup">
+<summary>Chiave Gemini (si inserisce una volta sola)</summary>
+<p class="mut">Vai su aistudio.google.com, accedi con Google e crea una "API key". Incollala qui: resta salvata solo su questo dispositivo.</p>
+<label for="key">Chiave API</label>
+<input type="password" id="key" autocomplete="off" placeholder="AIza...">
+<label for="model" style="margin-top:10px">Modello</label>
+<input type="text" id="model" value="gemini-2.5-flash">
+<p class="mut">Se compare un errore sul modello, scrivi qui un modello Gemini Flash disponibile su AI Studio.</p>
+<div class="row"><button id="saveKey" class="p">Salva</button><span id="saved" class="mut"></span></div>
+</details>
+
+<section class="card" id="inp">
+<ol class="steps3"><li>Carica l'audio o incolla il testo</li><li>Premi il tasto rosso</li><li>Studia con le schede</li></ol>
+<label class="drop" id="drop" for="file"><b id="dropT">Trascina qui la registrazione o toccala per sceglierla</b><span class="mut">m4a, mp3, wav · fino a 15 MB</span>
+<input type="file" id="file" accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac"></label>
+<div class="row"><button id="trans" disabled>Trascrivi l'audio</button><span id="tstat" class="mut"></span></div>
+<label for="txt" style="margin-top:14px">Testo della lezione</label>
+<textarea id="txt" placeholder="Incolla qui la trascrizione, oppure trascrivi l'audio qui sopra."></textarea>
+<div class="row" style="margin-top:12px"><button id="go" class="p">Spiegami la lezione</button><button id="demo">Prova senza chiave</button><span id="gstat" class="mut"></span></div>
+<p id="err" class="err" hidden></p>
+</section>
+
+<section id="out" hidden>
+<div class="tabs" role="tablist">
+<button role="tab" data-t="spieg" aria-selected="true">Spiegazione</button>
+<button role="tab" data-t="anim" aria-selected="false">Animazioni</button>
+<button role="tab" data-t="app" aria-selected="false">Appunti</button>
+<button role="tab" data-t="fc" aria-selected="false">Flashcard</button>
+<button role="tab" data-t="quiz" aria-selected="false">Quiz</button>
+</div>
+<div class="card pane" id="p-spieg"></div>
+<div class="pane" id="p-anim" hidden></div>
+<div class="card pane" id="p-app" hidden></div>
+<div class="card pane" id="p-fc" hidden></div>
+<div class="card pane" id="p-quiz" hidden></div>
+<div class="row"><button id="copy">Copia appunti</button><span id="cstat" class="mut"></span></div>
+</section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } },
+  set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} }
+};
+$('key').value = store.get('gk') || '';
+$('model').value = store.get('gm') || 'gemini-2.5-flash';
+if(!$('key').value) $('setup').open = true;
+$('saveKey').onclick = () => {
+  store.set('gk', $('key').value.trim());
+  store.set('gm', $('model').value.trim() || 'gemini-2.5-flash');
+  $('saved').textContent = 'Salvata.';
+};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- file audio ---------- */
+function setFile(f){
+  if(!f) return;
+  const dt = new DataTransfer(); dt.items.add(f); $('file').files = dt.files;
+  $('dropT').textContent = f.name; $('trans').disabled = false;
+}
+$('file').onchange = () => setFile($('file').files[0]);
+['dragenter','dragover'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.add('over')}));
+['dragleave','drop'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.remove('over')}));
+$('drop').addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) setFile(f); });
+
+function showErr(m){ const e=$('err'); e.textContent=m; e.hidden=!m; }
+
+async function callGemini(parts, json){
+  const key = $('key').value.trim();
+  const model = ($('model').value.trim() || 'gemini-2.5-flash');
+  if(!key){ $('setup').open = true; throw new Error('Inserisci prima la chiave Gemini.'); }
+  const body = { contents:[{ role:'user', parts }] };
+  if(json) body.generationConfig = { responseMimeType:'application/json' };
+  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify(body)
+  });
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error((d.error && d.error.message) || ('Errore '+r.status));
+  const t = d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts;
+  if(!t) throw new Error('Risposta vuota. Riprova.');
+  return t.map(p=>p.text||'').join('');
+}
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const fr = new FileReader();
+    fr.onload = () => res(String(fr.result).split(',')[1]);
+    fr.onerror = () => rej(new Error('Non riesco a leggere il file.'));
+    fr.readAsDataURL(file);
+  });
+}
+$('trans').onclick = async () => {
+  const f = $('file').files[0]; if(!f) return;
+  showErr(''); $('trans').disabled = true; $('tstat').textContent = 'Trascrivo… può volerci un minuto.';
+  try{
+    if(f.size > 15*1024*1024) throw new Error('File troppo grande. Incolla il testo oppure usa una registrazione più corta.');
+    const data = await toBase64(f);
+    const mime = f.type || (f.name.toLowerCase().endsWith('.m4a') ? 'audio/mp4' : 'audio/mpeg');
+    const t = await callGemini([
+      { text:'Trascrivi fedelmente in italiano questa registrazione di una lezione. Restituisci solo il testo, con punteggiatura corretta e a capo tra i paragrafi. Non aggiungere commenti.' },
+      { inline_data:{ mime_type: mime, data } }
+    ], false);
+    $('txt').value = t.trim();
+    $('tstat').textContent = 'Fatto. Controlla il testo e premi "Spiegami la lezione".';
+  }catch(e){ showErr(e.message); $('tstat').textContent=''; }
+  $('trans').disabled = false;
+};
+
+/* ---------- prompt ---------- */
+const PROMPT = `Sei un tutor che aiuta uno studente italiano a studiare. Ti do la trascrizione di una lezione (può contenere errori di trascrizione: correggi mentalmente nomi e termini).
+Rispondi SOLO con un JSON valido in italiano, con questa struttura:
+{
+ "titolo": "titolo breve della lezione",
+ "spiegazione": ["paragrafo 1", "paragrafo 2"],
+ "animazioni": [
+   { "titolo": "...", "tipo": "flusso", "descrizione": "una riga", "passi": [ { "testo": "titolo breve del passo", "dettaglio": "una frase" } ] },
+   { "titolo": "...", "tipo": "confronto", "colonne": ["Cosa A", "Cosa B"], "descrizione": "una riga", "passi": [ { "voce": "criterio", "a": "...", "b": "..." } ] },
+   { "titolo": "...", "tipo": "esempio", "descrizione": "una riga", "passi": [ { "testo": "frase o battuta d'esempio", "nota": "cosa mostra / cosa cambia" } ] }
+ ],
+ "appunti": [ { "sezione": "titolo sezione", "punti": ["punto breve"] } ],
+ "glossario": [ { "termine": "...", "definizione": "definizione semplice in una riga", "esempio": "esempio concreto dalla lezione" } ],
+ "quiz": [ { "domanda": "...", "opzioni": ["A", "B", "C", "D"], "corretta": 0, "spiegazione": "perché è giusta" } ]
+}
+Regole:
+- Spiegazione semplice, come a un ragazzo che non ha capito la lezione, con esempi.
+- Animazioni: da 2 a 4 scene scelte tra i tre tipi, solo se hanno senso per la lezione. "flusso" per cause ed effetti o processi (3-6 passi), "confronto" per differenze tra due cose (3-6 righe), "esempio" per far vedere un caso concreto passo per passo (2-5 passi).
+- Appunti schematici per il quaderno: frasi brevissime, parole chiave, niente paragrafi lunghi.
+- Glossario di 6-10 termini (diventeranno flashcard).
+- Quiz di 6 domande; "corretta" è l'indice (da 0) dell'opzione giusta.
+- Non inventare contenuti che non sono nella lezione.
+
+LEZIONE:
+`;
+
+/* ---------- esempio ---------- */
+const DEMO = {
+  titolo:'Il Verismo: Capuana e Verga',
+  spiegazione:[
+    'Il Verismo è la versione italiana del Naturalismo francese di Zola. Capuana ne è il teorico, Verga lo mette in pratica nelle sue opere, come I Malavoglia e Rosso Malpelo.',
+    'La differenza più visibile è l\'ambiente. Zola racconta città e operai, Verga racconta il Sud Italia, dove vivono soprattutto contadini e pescatori.',
+    'Verga non crede che la società possa cambiare. Fotografa la realtà com\'è, senza sperare in un miglioramento, e per questo la sua visione è pessimistica.',
+    'Per raccontare, il narratore si nasconde e lascia parlare i personaggi. Chi legge capisce come sono dalle loro azioni, non da quello che dice l\'autore.'
+  ],
+  animazioni:[
+    {titolo:'Perché la visione di Verga è pessimistica',tipo:'flusso',descrizione:'Dal modo di vedere la società al tono del racconto.',passi:[
+      {testo:'Fotografa la realtà',dettaglio:'Verga descrive il mondo com\'è, senza abbellirlo.'},
+      {testo:'Non crede nel cambiamento',dettaglio:'Non ha fiducia che la società possa migliorare.'},
+      {testo:'Il progresso non aiuta i poveri',dettaglio:'Contadini e pescatori restano nella loro condizione.'},
+      {testo:'Visione pessimistica',dettaglio:'Il tono del racconto è cupo e senza speranza.'}]},
+    {titolo:'Naturalismo contro Verismo',tipo:'confronto',colonne:['Naturalismo','Verismo'],descrizione:'Le differenze da ricordare all\'interrogazione.',passi:[
+      {voce:'Ambiente',a:'Città francesi, operai',b:'Sud Italia, contadini e pescatori'},
+      {voce:'Scopo',a:'Coscienza sociale e cambiamento',b:'Mostrare la realtà senza sperare nel cambiamento'},
+      {voce:'Tono',a:'Più fiducioso',b:'Pessimistico'},
+      {voce:'Determinismo',a:'Rigoroso',b:'Meno rigido: conta anche la psicologia'}]},
+    {titolo:'L\'usuraio si capisce dai fatti',tipo:'esempio',descrizione:'Il narratore non lo giudica: è lui a mostrarsi.',passi:[
+      {testo:'La barca Provvidenza affonda e il carico di lupini è perso.',nota:'Un fatto, raccontato senza commento.'},
+      {testo:'Muore Bastianazzo in mare.',nota:'Un\'altra tragedia, sempre senza commento dell\'autore.'},
+      {testo:'L\'usuraio pensa ai soldi che aveva anticipato.',nota:'Da questa reazione capisci che è avido, senza che nessuno lo scriva.'}]}
+  ],
+  appunti:[
+    {sezione:'Verismo',punti:['Capuana è il teorico','Verga lo applica','Deriva dal Naturalismo di Zola, adattato all\'Italia']},
+    {sezione:'Differenze con Zola',punti:['Ambiente: Sud Italia, contadini e pescatori','Verga non crede nel cambiamento sociale','Visione pessimistica','Determinismo meno rigido: conta anche la psicologia']},
+    {sezione:'Tecniche narrative',punti:['Impersonalità o eclissi dell\'autore: il narratore si nasconde','Regressione: l\'autore scende al livello dei personaggi','Straniamento: effetto di stranezza sul lettore','Discorso indiretto libero: niente virgolette né verbo dichiarativo','Legge del più forte: il ricco schiaccia il povero','Psicologia dai fatti: i personaggi si capiscono da ciò che fanno']}
+  ],
+  glossario:[
+    {termine:'Eclissi dell\'autore',definizione:'Il narratore si nasconde e non commenta.',esempio:'Nei Malavoglia parlano i personaggi, non l\'autore.'},
+    {termine:'Regressione',definizione:'L\'autore scende al livello culturale dei personaggi.',esempio:'In Rosso Malpelo "era cattivo perché aveva i capelli rossi" è la mentalità popolare.'},
+    {termine:'Straniamento',definizione:'Il lettore resta stupito da come racconta l\'autore.',esempio:'Ti sembra strano che un autore colto scriva così.'},
+    {termine:'Discorso indiretto libero',definizione:'Il personaggio parla senza virgolette né verbi come "disse".',esempio:'Il lettore entra subito nella realtà dei pescatori.'},
+    {termine:'Legge del più forte',definizione:'Chi ha più soldi e potere schiaccia chi ne ha meno.',esempio:'L\'usuraio e la famiglia dei Malavoglia.'},
+    {termine:'Determinismo',definizione:'Idea che ambiente e origine determinino il comportamento.',esempio:'Verga lo applica in modo meno rigido: conta anche la psicologia.'}
+  ],
+  quiz:[
+    {domanda:'Chi è il teorico del Verismo?',opzioni:['Verga','Capuana','Zola','Manzoni'],corretta:1,spiegazione:'Capuana è il teorico, Verga lo mette in pratica.'},
+    {domanda:'Quale ambiente racconta Verga?',opzioni:['Le città francesi','Le fabbriche del Nord','Il Sud Italia con contadini e pescatori','La corte'],corretta:2,spiegazione:'Verga racconta il Sud, soprattutto la provincia di Catania.'},
+    {domanda:'Perché la visione di Verga è pessimistica?',opzioni:['Perché odia i poveri','Perché non crede che la società possa cambiare','Perché scrive poco','Perché imita Zola'],corretta:1,spiegazione:'Fotografa la realtà senza fiducia nel cambiamento.'},
+    {domanda:'Che cos\'è la regressione?',opzioni:['L\'autore scende al livello dei personaggi','Il narratore racconta il passato','L\'autore commenta tutto','Il personaggio ripete le stesse frasi'],corretta:0,spiegazione:'L\'autore adotta la mentalità dei suoi personaggi.'},
+    {domanda:'Che effetto produce la regressione sul lettore?',opzioni:['Noia','Straniamento','Commozione','Entusiasmo'],corretta:1,spiegazione:'Il lettore resta stupito dal modo di raccontare.'},
+    {domanda:'Nel discorso indiretto libero cosa manca?',opzioni:['Il soggetto','Il verbo','Virgolette e verbo dichiarativo','La punteggiatura'],corretta:2,spiegazione:'Il personaggio parla direttamente, senza introduzione.'}
+  ]
+};
+
+/* ---------- rendering ---------- */
+let current = null;
+function el(tag, text, cls){ const e=document.createElement(tag); if(text!=null) e.textContent=text; if(cls) e.className=cls; return e; }
+const arr = x => Array.isArray(x) ? x : [];
+
+function buildScene(a){
+  const card = el('div',null,'card scene');
+  const h = el('div',null,'scene-h');
+  h.append(el('span',({flusso:'Passo dopo passo',confronto:'Confronto',esempio:'Esempio'})[a.tipo]||'Scena','badge'), el('h3',a.titolo));
+  if(a.descrizione) h.append(el('p',a.descrizione));
+  const stage = el('div',null,'stage '+(a.tipo==='flusso'?'flow':''));
+  const items = [];
+  const passi = arr(a.passi);
+  if(a.tipo==='confronto'){
+    const c = arr(a.colonne);
+    const hd = el('div',null,'cmp-head'); hd.append(el('div',''), el('div',c[0]||'A'), el('div',c[1]||'B')); stage.append(hd);
+  }
+  passi.forEach((p,i)=>{
+    const s = el('div',null,'st');
+    if(a.tipo==='confronto'){
+      s.classList.add('cmp-row'); s.append(el('div',p.voce,'v'), el('div',p.a), el('div',p.b));
+    }else if(a.tipo==='esempio'){
+      s.append(el('div',p.testo,'bub'), el('div',p.nota,'note'));
+    }else{
+      s.append(el('div',null,'arrow'));
+      const n = el('div',null,'node'); n.append(el('div',String(i+1),'n'));
+      const t = el('div'); t.append(el('b',p.testo)); if(p.dettaglio) t.append(el('span',p.dettaglio));
+      n.append(t); s.append(n);
+    }
+    stage.append(s); items.push(s);
+  });
+  const ctrl = el('div',null,'ctrl');
+  const play = el('button','▶ Guarda l\'animazione','p');
+  const prev = el('button','‹'); prev.setAttribute('aria-label','Indietro');
+  const next = el('button','›'); next.setAttribute('aria-label','Avanti');
+  const dots = el('div',null,'dots'); const dd = items.map(()=>dots.appendChild(document.createElement('i')));
+  ctrl.append(play,prev,next,dots);
+  let n = items.length, timer = null;
+  function show(k){ n=Math.max(0,Math.min(items.length,k)); items.forEach((s,i)=>s.classList.toggle('on',i<n)); dd.forEach((d,i)=>d.classList.toggle('on',i<n)); }
+  function stop(){ clearInterval(timer); timer=null; play.textContent = '▶ Guarda l\'animazione'; }
+  play.onclick = () => {
+    if(timer){ stop(); return; }
+    show(0); play.textContent = '❚❚ Pausa';
+    if(reduce){ show(items.length); stop(); return; }
+    setTimeout(()=>show(1),150);
+    timer = setInterval(()=>{ if(n>=items.length){ stop(); } else show(n+1); }, 1700);
+  };
+  prev.onclick = () => { stop(); show(n-1); };
+  next.onclick = () => { stop(); show(n+1); };
+  show(items.length);
+  card.append(h,stage,ctrl);
+  return card;
+}
+
+function buildFlash(g){
+  const wrap = $('p-fc'); wrap.replaceChildren();
+  const list = arr(g); if(!list.length){ wrap.append(el('p','Nessun termine per le flashcard.')); return; }
+  let i = 0;
+  wrap.append(el('p','Tocca la carta per girarla.','mut'));
+  const fw = el('div',null,'fc-wrap'); const fc = el('div',null,'fc');
+  const f = el('div',null,'f'), b = el('div',null,'b');
+  fc.append(f,b); fw.append(fc); wrap.append(fw);
+  const ctl = el('div',null,'row'); ctl.style.marginTop='12px';
+  const pv = el('button','‹ Prima'), nx = el('button','Dopo ›','p'), cnt = el('span','','mut');
+  ctl.append(pv,nx,cnt); wrap.append(ctl);
+  function draw(){
+    fc.classList.remove('flip');
+    const g = list[i];
+    f.replaceChildren(el('b',g.termine));
+    b.replaceChildren(el('p',g.definizione)); if(g.esempio) b.append(el('p','Esempio: '+g.esempio,'mut'));
+    cnt.textContent = (i+1)+' / '+list.length;
+  }
+  fc.onclick = () => fc.classList.toggle('flip');
+  pv.onclick = () => { i=(i-1+list.length)%list.length; draw(); };
+  nx.onclick = () => { i=(i+1)%list.length; draw(); };
+  draw();
+}
+
+function confetti(){
+  if(reduce) return;
+  const cols=['#ff5a36','#17695a','#f2b705','#4aa3df'];
+  for(let k=0;k<44;k++){
+    const c=el('i',null,'conf'); c.style.left=Math.random()*100+'vw'; c.style.background=cols[k%4];
+    c.style.setProperty('--dx',(Math.random()*160-80)+'px'); c.style.animationDelay=(Math.random()*.4)+'s';
+    document.body.append(c); setTimeout(()=>c.remove(),3000);
+  }
+}
+
+function buildQuiz(qs){
+  const box = $('p-quiz'); box.replaceChildren();
+  qs = arr(qs); if(!qs.length){ box.append(el('p','Nessuna domanda.')); return; }
+  const bar = el('div',null,'bar'); const fill = bar.appendChild(document.createElement('i')); box.append(bar);
+  const area = el('div'); box.append(area);
+  let i=0, score=0;
+  function ask(){
+    area.replaceChildren(); fill.style.width = (i/qs.length*100)+'%';
+    if(i>=qs.length){
+      area.append(el('p',score+' / '+qs.length,'score'),
+        el('p', score===qs.length?'Perfetto!':score>=qs.length*0.7?'Molto bene, ripassa solo i punti sbagliati.':'Rileggi gli appunti e riprova.'));
+      const r = el('button','Rifai il quiz','p'); r.onclick=()=>{i=0;score=0;ask()}; area.append(r);
+      fill.style.width='100%'; if(score>=qs.length*0.7) confetti(); return;
+    }
+    const q = qs[i], w = el('div',null,'q');
+    w.append(el('p',(i+1)+' di '+qs.length,'mut'), el('p',q.domanda,'t'));
+    const exp = el('div',q.spiegazione||'','exp'); exp.hidden=true;
+    const nx = el('button',i===qs.length-1?'Vedi il risultato':'Prossima','p'); nx.hidden=true; nx.style.marginTop='12px';
+    const bs=[];
+    arr(q.opzioni).forEach((o,j)=>{
+      const b = el('button',o,'opt');
+      b.onclick=()=>{
+        bs.forEach((x,k)=>{x.disabled=true; if(k===q.corretta) x.classList.add('ok')});
+        if(j===q.corretta) score++; else b.classList.add('ko');
+        exp.hidden=false; nx.hidden=false;
+      };
+      bs.push(b); w.append(b);
+    });
+    nx.onclick=()=>{i++;ask()};
+    w.append(exp,nx); area.append(w);
+  }
+  ask();
+}
+
+function render(d){
+  current = d;
+  const sp = $('p-spieg'); sp.replaceChildren(el('h2', d.titolo||'Lezione'));
+  arr(d.spiegazione).forEach(p=>sp.append(el('p',p)));
+
+  const an = $('p-anim'); an.replaceChildren();
+  const sc = arr(d.animazioni);
+  if(!sc.length) an.append(el('div','Nessuna animazione per questa lezione.','card'));
+  sc.forEach(a=>an.append(buildScene(a)));
+
+  const ap = $('p-app'); ap.replaceChildren();
+  arr(d.appunti).forEach(s=>{
+    const w = el('div',null,'sec'); w.append(el('h3', s.sezione));
+    const u = el('ul',null,'pts'); arr(s.punti).forEach(p=>u.append(el('li',p))); w.append(u); ap.append(w);
+  });
+
+  buildFlash(d.glossario);
+  buildQuiz(d.quiz);
+  $('out').hidden = false;
+  tab('spieg');
+  $('out').scrollIntoView({behavior: reduce?'auto':'smooth'});
+}
+
+function tab(t){
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.t===t)));
+  ['spieg','anim','app','fc','quiz'].forEach(x=>{ $('p-'+x).hidden = x!==t; });
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+
+$('demo').onclick = () => { showErr(''); render(DEMO); };
+
+$('go').onclick = async () => {
+  const t = $('txt').value.trim();
+  if(t.length < 80){ showErr('Incolla un testo più lungo, oppure trascrivi prima l\'audio.'); return; }
+  showErr(''); $('go').disabled = true; $('gstat').textContent = 'Sto preparando tutto… può volerci mezzo minuto.';
+  try{
+    const raw = await callGemini([{ text: PROMPT + t }], true);
+    let d;
+    try{ d = JSON.parse(raw); }catch(e){ d = JSON.parse(raw.replace(/^```json|```$/g,'').trim()); }
+    render(d); $('gstat').textContent = '';
+  }catch(e){ showErr(e.message); $('gstat').textContent=''; }
+  $('go').disabled = false;
+};
+
+$('copy').onclick = async () => {
+  if(!current) return;
+  let s = (current.titolo||'Lezione')+'\n\n';
+  arr(current.appunti).forEach(a=>{ s += String(a.sezione||'').toUpperCase()+'\n'; arr(a.punti).forEach(p=>{ s += '- '+p+'\n'; }); s += '\n'; });
+  try{ await navigator.clipboard.writeText(s); $('cstat').textContent = 'Copiati.'; }
+  catch(e){ $('cstat').textContent = 'Copia non riuscita: seleziona il testo a mano.'; }
+};
+</script>
+</body>
+</html>

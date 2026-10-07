@@ -1,0 +1,16 @@
+{
+  "name": "Appunti",
+  "short_name": "Appunti",
+  "description": "Carica una registrazione o un testo: ottieni spiegazione, animazioni, appunti, flashcard e quiz.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#edf1ef",
+  "theme_color": "#edf1ef",
+  "lang": "it",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
